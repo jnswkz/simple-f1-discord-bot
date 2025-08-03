@@ -2,8 +2,10 @@ import discord
 import dotenv
 import os
 from discord.ext import commands
-from services.formulanews import get_latest_news
-from services.formulasessions import get_session_data
+from services.latestnews import get_latest_news
+from services.sessions import get_session_data
+from services.constructorStanding import get_constructor_scoreboard
+from services.driverStanding import get_scoreboard
 import asyncio
 from typing import cast
 
@@ -133,10 +135,9 @@ async def on_message(message):
             await message.channel.send('Please provide a year.')
         else:
             try:
-                from services.formuladriverStanding import get_scoreboard
                 scoreboard = await get_scoreboard(year)
                 if scoreboard:
-                    response = f"WDC {year}:\n\n"
+                    response = f"World Drivers Championship {year}:\n\n"
                     for entry in scoreboard:
                         response += f"{entry['standing']}. {entry['driver']} ({entry['team']}) - {entry['points']} pts\n"
                     await message.channel.send(response)
@@ -145,6 +146,23 @@ async def on_message(message):
             except Exception as e:
                 await message.channel.send(f"Error fetching WDC data: {e}")
         
+    if message.content.startswith('$wcc'):
+        year = message.content.split('$wcc ')[1].strip()
+        if not year:
+            await message.channel.send('Please provide a year.')
+        else:
+            try:
+                scoreboard = await get_constructor_scoreboard(year)
+                if scoreboard:
+                    response = f"World Constructors Championship {year}:\n\n"
+                    for entry in scoreboard:
+                        response += f"{entry['standing']}. {entry['team']} - {entry['points']} pts\n"
+                    await message.channel.send(response)
+                else:
+                    await message.channel.send(f"No data found for WCC {year}.")
+            except Exception as e:
+                await message.channel.send(f"Error fetching WCC data: {e}")
+                
 
 async def news_update():
     global last_news
