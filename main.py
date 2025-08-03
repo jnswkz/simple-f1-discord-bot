@@ -24,7 +24,6 @@ last_news = []
 @client.event
 async def on_ready():
     print(f'We have logged in as {client.user}')
-    # Start the news update task when the client is ready
     client.loop.create_task(news_update())
 
 @client.event
@@ -49,7 +48,6 @@ async def on_message(message):
         else:
             info = await get_session_data(location)
             if info:
-                # Format the session data nicely
                 response = f"🏎️ **F1 Sessions for {location.title()}** 🏎️\n\n"
                 
                 for session in info:
@@ -60,7 +58,6 @@ async def on_message(message):
                     status = session.get('status', 'Unknown')
                     results = session.get('results', [])
                     
-                    # Add session header
                     if status == "Not Finished":
                         status_emoji = "🔜"
                     else:
@@ -70,7 +67,6 @@ async def on_message(message):
                     response += f"📅 {date} {month} at {time}\n"
                     response += f"📊 Status: {status}\n"
                     
-                    # Add results if available
                     if results:
                         response += "🏆 **Top Results:**\n"
                         for result in results[:3]:  # Show top 3
@@ -82,7 +78,6 @@ async def on_message(message):
                     
                     response += "\n"
                 
-                # Split message if too long (Discord has 2000 char limit)
                 if len(response) > 1900:
                     chunks = []
                     current_chunk = f"🏎️ **F1 Sessions for {location.title()}** 🏎️\n\n"
@@ -132,6 +127,23 @@ async def on_message(message):
             else:
                 await message.channel.send(f"❌ No session data found for '{location}'. Please check the location name.")
 
+    if message.content.startswith('$wdc'):
+        year = message.content.split('$wdc ')[1].strip()
+        if not year:
+            await message.channel.send('Please provide a year.')
+        else:
+            try:
+                from services.formuladriverStanding import get_scoreboard
+                scoreboard = await get_scoreboard(year)
+                if scoreboard:
+                    response = f"WDC {year}:\n\n"
+                    for entry in scoreboard:
+                        response += f"{entry['standing']}. {entry['driver']} ({entry['team']}) - {entry['points']} pts\n"
+                    await message.channel.send(response)
+                else:
+                    await message.channel.send(f"No data found for WDC {year}.")
+            except Exception as e:
+                await message.channel.send(f"Error fetching WDC data: {e}")
         
 
 async def news_update():
