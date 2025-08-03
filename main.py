@@ -159,7 +159,6 @@ async def news_update():
         print(f"Channel not found: {NEWS_CHANNEL_ID}")
         return
     
-    # Type cast to TextChannel for proper typing
     text_channel = cast(discord.TextChannel, channel)
     
     while not client.is_closed():
